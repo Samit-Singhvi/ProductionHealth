@@ -1,0 +1,340 @@
+{% load static %}
+{%load mathfilters%} {%load humanize%}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #a8e6cf, #d4fc79, #99f2c8, #67e8a6);
+}
+
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.navbar .btn-outline-success a {
+    color: green;
+    text-decoration: none;
+}
+
+.logo {
+    width: 150px;
+}
+
+.inputstyle {
+    font-size: 1.2rem;
+}
+
+.whoop {
+    font-size: 1.2rem;
+}
+
+#message {
+    padding: 5px;
+    font-size: 1.5rem;
+    color: white;
+    background-color: rgb(248, 87, 87);
+}
+
+.caloriescont {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.caloriescont h2 {
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.caloriescont h4 {
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.caloriescont li {
+    font-size: 1.2rem;
+}
+
+.alert {
+    font-size: 1.1rem;
+}
+
+.d-flex img {
+    width: 50px;
+}
+
+.d-flex h5 {
+    font-size: 1.2rem;
+}
+
+.d-flex p {
+    font-size: 1.1rem;
+}
+
+#myChart {
+    width: 100%;
+    height: 400px;
+}
+
+
+       
+    </style>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous" />
+    <link href="{% static 'style.css' %}" rel="stylesheet" type="text/css" />
+    <title>Foodie Calorie Finder</title>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-light bg-light">
+  <form class="form-inline">
+    <button class="btn btn-outline-success" type="button"><a href="{%url 'logout' %}">Logout</a></button>
+    <button class="btn btn-outline-success" type="button"><a href="{%url 'profile' %}">Profile</a></button>
+  </form>
+</nav>
+    <div class="container">
+        
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <img src="{% static 'images/Logo.png'%}" class=" img-responsive logo mb-5 mt-5" />
+                <form method="POST" >
+                    {% csrf_token %}
+                    <div class="input-group input-group-lg mb-5">
+                        <input type="text" name="query" class="form-control inputstyle"
+                            placeholder="search for calories in your food..." value="{{ predicted_data }}">>
+                        <button class="btn whoop" type="submit" Size="2" id="button-addon2">Find calories</button>
+                          </div>
+                         
+                </form>
+                <br>
+                <br>
+                <span>
+                    {% for message in messages%}
+                    <p id="message">{{message}}</p>
+                    {% endfor %}
+                </span>
+                <form action="{% url 'streamlit_app' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Click To Upload Image</button>
+                </form>
+              
+                
+                {%if api%}
+                {%if api == "oops! There was an error"%}
+                <div class="alert alert-warning"> Oh no! something went wrong.Please try again in sometime. </div>
+                {%else%}
+                <h1> {{api.0.name | capfirst}} has a total of <strong> {{api.0.calories}} Calories</strong>
+                    {%if api.0.calories > 200%}
+                    <img src="{% static 'images/shocked.png' %}" class="img-responsive" />
+                    {%endif%}
+                </h1>
+                 {%if api.0.sodium_mg > 600%}
+                <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                    <div>
+                        This food contains high amount of sodium. High Sodium causes Sever dehydration and water
+                        retention and can lead to high blood pressure, heart disease, and stroke
+                    </div>
+                </div>
+                {%endif%}
+                {%if api.0.sugar_g > 99%}
+                <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                    <div>
+                        This food contains high amount of sugar.
+                        High sugar consumption has been linked to increased inflammation, high levels of triglycerides and elevated blood pressure levels. All these lead to increased vulnerability to heart disease..
+                    
+                    </div>
+                </div>
+                {%endif%}
+                
+                {%if api.0.fat_total_g > 25%}
+                <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                    <div>
+                        This food contains high amount of fat.
+                        Excessive dietary fat intake has been linked to increased risk of obesity, coronary heart disease and certain types of cancer.
+                    
+                    </div>
+                </div>
+                {%endif%}
+                  
+                {%if api.0.carbohydrates_total_g > 50%}
+                <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                    <div>
+                        This food is high in carbohydrates.
+                        This can lead to Obesity, type 2 diabetes mellitus, dyslipoproteinaemia, hypertension, metabolic syndrome etc.
+                    
+                    </div>
+                </div>
+                {%endif%}
+                {%if api.0.protein_g > 30%}
+                <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                    <div>
+                        This food is high in protein.
+                      This can lead to intestinal discomfort, dehydration, nausea, fatigue, headaches, and more.
+                    
+                    </div>
+                </div>
+                {%endif%}
+                
+                
+            </div>
+               
+            <div class="row justify-content-center mt-5 mb-5">
+                <div class="col-md-10 caloriescont shadow rounded">
+                    <div class="row">
+
+                        <div class="col-md-6">
+                            <h2 class="mt-3 mb-4">Nutritional Values </h2><span></span>
+                            <ul>
+                                <li class="servingsize">Serving Size per 100/Grams <span class="float-end"></span></li>
+                                <li>Carbohydrates: <span class="float-end">{{api.0.carbohydrates_total_g}}</span>
+                                </li>
+                                <li>Cholesterol: <span class="float-end">{{api.0.cholesterol_mg }}</span></li>
+                                <li>Saturated fat: <span class="float-end">{{api.0.fat_saturated_g}}</span></li>
+                                <li>Total Fat: <span class="float-end">{{api.0.fat_total_g}}</span></li>
+                                <li>Fiber Content: <span class="float-end">{{api.0.fiber_g}}</span></li>
+                                <li>Potassium <span class="float-end">{{api.0.potassium_mg | div:1000}}</span></li>
+                                <li>Protein: <span class="float-end">{{api.0.protein_g}}<span></li>
+                                <li>Sodium:<span class="float-end">{{api.0.sodium_mg | div:1000}}</span></li>
+                                <li>Sugar: <span class="float-end">{{api.0.sugar_g}}</span></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-5">
+                            <h4 class="mt-3 mb-4">To burn {{api.0.calories}}  calories you will have to</h4>
+                            <div class="d-flex align-items-center mb-5">
+                                <div class="flex-shrink-0">
+                                    <img src="{% static 'images/running.png' %}" alt="...">
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h5> Jog </h5>
+                                    <p>you will have to jog for <strong>
+                                        {{api.0.calories | div:360 | mul:60 | floatformat:0}} </strong> Minutes</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-5">
+                                <div class="flex-shrink-0">
+                                    <img src="{% static 'images/yoga.png' %} " alt="...">
+                                </div>
+                                <div class="flex-grow-1 ms-4">
+                                    <h5> Do Power Yoga </h5>
+                                    <p>you will have to Power Yoga for <strong>
+                                        {{api.0.calories | div:223 | mul:60 | floatformat:0}} </strong> Minutes</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-5">
+                                <div class="flex-shrink-0">
+                                    <img src="{% static 'images/weightlifter.png' %}" alt="...">
+                                </div>
+                                <div class="flex-grow-1 ms-4">
+                                    <h5>Get a Gym Workout </h5>
+                                    <p>you will have to lift weight for <strong>
+                                        {{api.0.calories | div:483 | mul:60 | floatformat:0}} </strong> Minutes </p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="{% static 'images/walking.png' %}" alt="...">
+                                </div>
+                                <div class="flex-grow-1 ms-1">
+                                    <h5> Go for a Brisk Walk </h5>
+                                    <p>you will have to brisk walk for <strong>
+                                        {{api.0.calories | div:294 | mul:60 | floatformat:0}} </strong> Minutes</p>
+                                </div>
+                            </div>
+                           
+                        </div>
+                        <div class>
+                            <canvas id="myChart" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+            
+                {%endif%}
+                {%endif%}
+            </div>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js" integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>      
+
+<script>
+  const ctx = document.getElementById('myChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Carbohydrates', 'Cholesterol', 'Saturated Fat', 'Total Fat', 'Fiber Content', 'Potassium' , 'Protein' , 'Sodium' , 'Sugar'],
+      datasets: [{
+        label: 'Nutritional values of {{api.0.name | capfirst}}',
+        data: [
+           {{api.0.carbohydrates_total_g}},
+        
+           {{api.0.cholesterol_mg}},
+            {{api.0.fat_saturated_g}},
+         {{api.0.fat_total_g}},
+           {{api.0.fiber_g}},
+          {{api.0.potassium_mg}},
+           {{api.0.protein_g}},
+          {{api.0.sodium_mg}},
+            {{api.0.sugar_g}},
+        ],
+        backgroundColor:[
+            'rgba(255 , 99 , 132 , 0.2)',
+            'rgba(54 , 162 , 132 , 0.2)',
+            'rgba(255 , 206 , 87 , 0.2)',
+            'rgba(221 , 92 , 32 , 0.2)',
+            'rgba(255 , 69 , 119 , 0.2)',
+            'rgba(30 , 218 , 132 , 0.2)',
+            'rgba(25 , 99 , 132 , 0.2)',
+            'rgba(55 , 107, 59 , 0.2)',
+            'rgba(87 , 99 , 115 , 0.2)'
+        ],
+        borderColor:[
+            'rgba(255 , 99 , 132 , 1)',
+            'rgba(54 , 162 , 132 , 1)',
+            'rgba(255 , 206 , 87 , 1)',
+            'rgba(221 , 92 , 32 , 1)',
+            'rgba(255 , 69 , 119 , 1)',
+            'rgba(30 , 218 , 132 , 1)',
+            'rgba(25 , 99 , 132 , 1)',
+            'rgba(55 , 107, 59 , 1)',
+            'rgba(87 , 99 , 115 , 1)'
+
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+        responsive:true , 
+        maintainAspectRatio:false,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+        
+</body>
+
+</html>
